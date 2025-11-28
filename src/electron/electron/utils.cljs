@@ -1,6 +1,5 @@
 (ns electron.utils
-  (:require ["@logseq/rsapi" :as rsapi]
-            ["electron" :refer [app BrowserWindow]]
+  (:require ["electron" :refer [app BrowserWindow]]
             ["fs-extra" :as fs]
             ["path" :as node-path]
             [cljs-bean.core :as bean]
@@ -82,12 +81,10 @@
     (reset! *fetchAgent nil)))
 
 (defn- set-rsapi-proxy
-  "Set proxy for Logseq Sync(rsapi)"
-  [{:keys [protocol host port]}]
-  (if (and protocol host port (or (= protocol "http") (= protocol "socks5")))
-    (let [proxy-url (str protocol "://" host ":" port)]
-      (rsapi/setProxy proxy-url))
-    (rsapi/setProxy nil)))
+  "Set proxy for Logseq Sync(rsapi) - DISABLED for ARM64 build (no rsapi)"
+  [_opts]
+  ;; No-op: rsapi removed for Windows ARM64 build (no sync support)
+  nil)
 
 (defn <set-electron-proxy
   "Set proxy for electron

@@ -1,0 +1,117 @@
+name: Build Windows ARM64
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  compile-cljs:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@12.5
+        with:
+          cli: 1.11.1.1413
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build ClojureScript
+        run: |
+          yarn gulp:build
+          yarn cljs:release-electron
+          yarn webpack-app-build
+
+      - name: Upload static assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: cljs-static
+          path: static/
+
+  build-windows-arm64:
+    needs: compile-cljs
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download static assets
+        uses: actions/download-artifact@v4
+        with:
+          name: cljs-static
+          path: static/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies (ARM64)
+        working-directory: static
+        env:
+          npm_config_arch: arm64
+        run: yarn install
+
+      - name: Build Electron ARM64
+        working-directory: static
+        env:
+          npm_config_arch: arm64
+        run: yarn electron:make-win-arm64
+
+      - name: Prepare artifacts
+        run: |
+          mkdir builds
+          move static\out\make\squirrel.windows\arm64\*.nupkg builds\
+          move static\out\make\zip\win32\arm64\*.zip builds\
+          move static\out\make\wix\arm64\Logseq.msi builds\Logseq-win-arm64.msi
+        shell: cmd
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: logseq-win-arm64
+          path: builds/
+
+  release:
+    needs: build-windows-arm64
+    runs-on: ubuntu-22.04
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: logseq-win-arm64
+          path: ./
+
+      - name: Create/Update Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: win-arm64-latest
+          name: Windows ARM64 Build
+          prerelease: true
+          files: |
+            *.nupkg
+            *.zip
+            *.msi
+          body: |
+            ## Windows ARM64 Community Build
+
+            This is an unofficial Windows ARM64 build with Sync and Git features disabled.
+
+            **What works:** Core note-taking, local files, whiteboards, plugins
+            **What's disabled:** Logseq Sync, Git integration
+
+            See README for details.

@@ -1,74 +1,83 @@
 (ns electron.file-sync-rsapi
-  (:require ["@logseq/rsapi" :as rsapi]
-            [electron.window :as window]
-            [electron.logger :as logger]
-            [cljs-bean.core :as bean]))
+  "STUBBED: rsapi removed for Windows ARM64 build (no sync support)"
+  (:require [electron.logger :as logger]
+            [promesa.core :as p]))
 
-(defn- init-logger [log-fn] (rsapi/initLogger log-fn))
+;; All functions stubbed - rsapi native module not available on Windows ARM64
 
-(defn key-gen [] (rsapi/keygen))
+(defn- sync-disabled-error []
+  (js/Error. "Logseq Sync is not available in this build (Windows ARM64)"))
 
-(defn set-env [graph-uuid env private-key public-key]
-  (rsapi/setEnv graph-uuid env private-key public-key))
+(defn- init-logger [_log-fn]
+  (logger/info "rsapi: init-logger stubbed (sync disabled)"))
 
-(defn set-progress-callback [callback]
-  (rsapi/setProgressCallback callback))
+(defn key-gen []
+  (logger/warn "rsapi: key-gen called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn get-local-files-meta [graph-uuid base-path file-paths]
-  (rsapi/getLocalFilesMeta graph-uuid base-path (clj->js file-paths)))
+(defn set-env [_graph-uuid _env _private-key _public-key]
+  (logger/warn "rsapi: set-env called but sync is disabled")
+  nil)
 
-(defn get-local-all-files-meta [graph-uuid base-path]
-  (rsapi/getLocalAllFilesMeta graph-uuid base-path))
+(defn set-progress-callback [_callback]
+  nil)
 
-(defn rename-local-file [graph-uuid base-path from to]
-  (rsapi/renameLocalFile graph-uuid base-path from to))
+(defn get-local-files-meta [_graph-uuid _base-path _file-paths]
+  (logger/warn "rsapi: get-local-files-meta called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn delete-local-files [graph-uuid base-path file-paths]
-  (rsapi/deleteLocalFiles graph-uuid base-path (clj->js file-paths)))
+(defn get-local-all-files-meta [_graph-uuid _base-path]
+  (logger/warn "rsapi: get-local-all-files-meta called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn fetch-remote-files [graph-uuid base-path file-paths token]
-  (rsapi/fetchRemoteFiles graph-uuid base-path (clj->js file-paths) token))
+(defn rename-local-file [_graph-uuid _base-path _from _to]
+  (logger/warn "rsapi: rename-local-file called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn update-local-files [graph-uuid base-path file-paths token]
-  (rsapi/updateLocalFiles graph-uuid base-path (clj->js file-paths) token))
+(defn delete-local-files [_graph-uuid _base-path _file-paths]
+  (logger/warn "rsapi: delete-local-files called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn download-version-files [graph-uuid base-path file-paths token]
-  (rsapi/updateLocalVersionFiles graph-uuid base-path (clj->js file-paths) token))
+(defn fetch-remote-files [_graph-uuid _base-path _file-paths _token]
+  (logger/warn "rsapi: fetch-remote-files called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn delete-remote-files [graph-uuid base-path file-paths txid token]
-  (rsapi/deleteRemoteFiles graph-uuid base-path (clj->js file-paths) txid token))
+(defn update-local-files [_graph-uuid _base-path _file-paths _token]
+  (logger/warn "rsapi: update-local-files called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn update-remote-files [graph-uuid base-path file-paths txid token]
-  (rsapi/updateRemoteFiles graph-uuid base-path (clj->js file-paths) txid token))
+(defn download-version-files [_graph-uuid _base-path _file-paths _token]
+  (logger/warn "rsapi: download-version-files called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn encrypt-fnames [graph-uuid fnames]
-  (rsapi/encryptFnames graph-uuid (clj->js fnames)))
+(defn delete-remote-files [_graph-uuid _base-path _file-paths _txid _token]
+  (logger/warn "rsapi: delete-remote-files called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn decrypt-fnames [graph-uuid fnames]
-  (rsapi/decryptFnames graph-uuid (clj->js fnames)))
+(defn update-remote-files [_graph-uuid _base-path _file-paths _txid _token]
+  (logger/warn "rsapi: update-remote-files called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn encrypt-with-passphrase [passphrase data]
-  (rsapi/ageEncryptWithPassphrase passphrase data))
+(defn encrypt-fnames [_graph-uuid _fnames]
+  (logger/warn "rsapi: encrypt-fnames called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
-(defn decrypt-with-passphrase [passphrase data]
-  (rsapi/ageDecryptWithPassphrase passphrase data))
+(defn decrypt-fnames [_graph-uuid _fnames]
+  (logger/warn "rsapi: decrypt-fnames called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
+
+(defn encrypt-with-passphrase [_passphrase _data]
+  (logger/warn "rsapi: encrypt-with-passphrase called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
+
+(defn decrypt-with-passphrase [_passphrase _data]
+  (logger/warn "rsapi: decrypt-with-passphrase called but sync is disabled")
+  (p/rejected (sync-disabled-error)))
 
 (defn cancel-all-requests []
-  (rsapi/cancelAllRequests))
+  nil)
 
 (defonce progress-notify-chan "file-sync-progress")
-(set-progress-callback (fn [error progress-info]
-                         (when-not error
-                           (doseq [^js win (window/get-all-windows)]
-                             (when-not (.isDestroyed win)
-                               (.. win -webContents
-                                   (send progress-notify-chan (bean/->js progress-info))))))))
 
-(init-logger (fn [_error record]
-               (let [[level message] record]
-                 (case level
-                   "ERROR" (logger/error message)
-                   "WARN" (logger/warn message)
-                   "INFO" (logger/info message)
-                   "DEBUG" (logger/debug message)
-                   (logger/debug message)))))
+;; Initialize with stubbed logger
+(init-logger nil)
