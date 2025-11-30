@@ -143,13 +143,10 @@
         ;; Start WebGPU check early (runs in parallel with other init)
         webgpu-check (when-not (util/mobile?)
                        (db-browser/<check-webgpu-available?))]
-    ;; OPTIMIZATION: Render first, defer plugin init for faster window appearance
     (p/do!
      (idb/start)
+     (plugin-handler/setup!)
      (render))
-
-    ;; Defer plugin initialization after render (50ms delay for Electron stability)
-    (js/setTimeout #(plugin-handler/setup!) (if (util/electron?) 50 0))
 
     (get-system-info)
     (set-global-error-notification!)
