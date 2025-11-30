@@ -1,8 +1,10 @@
 const path = require('path');
 const webpack = require('webpack');
 
+// Use production mode when NODE_ENV is set (e.g., by cross-env in build scripts)
+// This enables tree shaking, minification, and other optimizations
 var config = {
-  mode: "development",
+  mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   externals: {
     'react': 'React',
     'react-dom': 'ReactDOM',

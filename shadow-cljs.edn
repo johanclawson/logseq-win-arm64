@@ -51,6 +51,11 @@
                           frontend.config/ENABLE-RTC-SYNC-PRODUCTION #shadow/env ["ENABLE_RTC_SYNC_PRODUCTION" :as :bool :default true]
                           frontend.config/REVISION #shadow/env ["LOGSEQ_REVISION" :default "dev"]} ;; set by git-revision-hook
 
+        :release {:compiler-options {:fn-invoke-direct true
+                                     :elide-asserts true
+                                     :source-map false}
+                  :closure-defines {goog.debug.LOGGING_ENABLED false}}
+
         :devtools {:before-load frontend.core/stop          ;; before live-reloading any code call this function
                    :after-load frontend.core/start          ;; after live-reloading finishes call this function
                    :watch-path "/static"
@@ -74,7 +79,11 @@
 
               :output-dir       "./static/js"
               :asset-path       "/static/js"
-              :release          {:asset-path "https://asset.logseq.com/static/js"}
+              :release          {:asset-path "https://asset.logseq.com/static/js"
+                                 :compiler-options {:fn-invoke-direct true
+                                                    :elide-asserts true
+                                                    :source-map false}
+                                 :closure-defines {goog.debug.LOGGING_ENABLED false}}
               :compiler-options {:infer-externs      :auto
                                  :output-feature-set :es-next-in
                                  :source-map true
@@ -104,7 +113,11 @@
 
                      :output-dir       "./static/js"
                      :asset-path       "/static/js"
-                     :release          {:asset-path "https://asset.logseq.com/static/js"}
+                     :release          {:asset-path "https://asset.logseq.com/static/js"
+                                        :compiler-options {:fn-invoke-direct true
+                                                           :elide-asserts true
+                                                           :source-map false}
+                                        :closure-defines {goog.debug.LOGGING_ENABLED false}}
                      :compiler-options {:infer-externs      :auto
                                         :output-feature-set :es-next-in
                                         :source-map true
@@ -132,7 +145,11 @@
 
            :output-dir       "./static/mobile/js"
            :asset-path       "./js"
-           :release          {:asset-path "http://localhost"}
+           :release          {:asset-path "http://localhost"
+                              :compiler-options {:fn-invoke-direct true
+                                                 :elide-asserts true
+                                                 :source-map false}
+                              :closure-defines {goog.debug.LOGGING_ENABLED false}}
            :compiler-options {:infer-externs      :auto
                               :output-feature-set :es-next-in
                               :source-map true
@@ -162,6 +179,10 @@
   :electron {:target :node-script
              :output-to "static/electron.js"
              :main electron.core/main
+             :release {:compiler-options {:fn-invoke-direct true
+                                          :elide-asserts true
+                                          :source-map false}
+                       :closure-defines {goog.debug.LOGGING_ENABLED false}}
              :devtools {:before-load electron.core/stop
                         :after-load electron.core/start}
              :compiler-options {:infer-externs :auto
@@ -211,6 +232,10 @@
 
                :output-dir "./static/js/publishing"
                :asset-path "static/js"
+               :release {:compiler-options {:fn-invoke-direct true
+                                            :elide-asserts true
+                                            :source-map false}
+                         :closure-defines {goog.debug.LOGGING_ENABLED false}}
                :closure-defines {logseq.common.config/PUBLISHING true
                                  goog.debug.LOGGING_ENABLED true}
                :compiler-options {:infer-externs :auto
