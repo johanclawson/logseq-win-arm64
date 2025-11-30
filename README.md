@@ -5,6 +5,16 @@
 
 > **Version Note:** This fork is currently at version `0.11.0`, which is ahead of the latest official stable release (`0.10.14`). This happened because we initially synced with upstream's development branch. Going forward, we will only sync with official stable releases to ensure version parity. See [Upstream Sync](#upstream-sync) for details.
 
+## Support the Official Logseq Team
+
+This is an **unofficial community fork**. The amazing Logseq team builds this incredible open-source tool, and they deserve your support!
+
+**Important:** This fork disables [Logseq Sync](https://blog.logseq.com/logseq-sync-is-now-available-to-everyone/) - a paid feature that helps fund Logseq's continued development. If you find Logseq valuable, please consider supporting the official team:
+
+**[Donate to Logseq on OpenCollective](https://opencollective.com/logseq)**
+
+Your contribution helps them continue building this amazing knowledge management tool for everyone.
+
 ## Why This Fork Exists
 
 The official Logseq CI pipeline builds Windows ARM64 but the builds **crash on startup** due to a missing native module:
