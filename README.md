@@ -3,6 +3,8 @@
 > **This is an unofficial community fork** providing working Windows ARM64 builds.
 > The official Logseq repository does not publish ARM64 releases.
 
+> **Version Note:** This fork is currently at version `0.11.0`, which is ahead of the latest official stable release (`0.10.14`). This happened because we initially synced with upstream's development branch. Going forward, we will only sync with official stable releases to ensure version parity. See [Upstream Sync](#upstream-sync) for details.
+
 ## Why This Fork Exists
 
 The official Logseq CI pipeline builds Windows ARM64 but the builds **crash on startup** due to a missing native module:
