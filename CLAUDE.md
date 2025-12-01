@@ -125,26 +125,26 @@ Or via winget + clj-msi installer from https://github.com/casselc/clj-msi/releas
 
 ## ARM64 Fork Information
 
-> **This is a community fork** providing working Windows ARM64 builds.
+> **This is a community fork** providing working Windows ARM64 builds with **full functionality**.
 > The sections below are specific to this fork.
 
 ### Why This Fork Exists
 
 The official Logseq CI builds ARM64 but the upstream doesn't publish `win32-arm64` binaries for native modules. This fork compiles `@logseq/rsapi` for ARM64 and downloads `dugite` ARM64 binaries to enable full functionality.
 
-### Full Functionality (feature-full-functionality branch)
+### Full Functionality
 
 | Feature | Status | How |
 |---------|--------|-----|
-| Logseq Sync | Enabled | rsapi compiled for ARM64 in CI workflow |
-| Git integration | Enabled | dugite-native provides ARM64 binaries |
+| Logseq Sync | **Enabled** | rsapi compiled for ARM64 in CI workflow |
+| Git integration | **Enabled** | dugite-native provides ARM64 binaries |
 
 ### Native Module Build Process
 
 The CI workflow builds rsapi from source using GitHub's native Windows ARM64 runner:
 
-1. **rsapi**: Built using `windows-arm64` runner with Rust + Clang (required by `ring` crate)
-2. **dugite**: Uses pre-built ARM64 binary from dugite-native releases
+1. **rsapi**: Built using `windows-11-arm` runner with Rust nightly + Clang (required by `ring` crate)
+2. **dugite**: Uses pre-built ARM64 binary from dugite-native releases (v2.47.3+)
 
 ### Fork-Specific Files
 

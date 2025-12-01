@@ -1,6 +1,6 @@
 # Logseq Windows ARM64 Community Build
 
-> **This is an unofficial community fork** providing working Windows ARM64 builds.
+> **This is an unofficial community fork** providing working Windows ARM64 builds with **full functionality**.
 > The official Logseq repository does not publish ARM64 releases.
 
 > **Version Note:** This fork is currently at version `0.11.0`, which is ahead of the latest official stable release (`0.10.14`). This happened because we initially synced with upstream's development branch. Going forward, we will only sync with official stable releases to ensure version parity. See [Upstream Sync](#upstream-sync) for details.
@@ -9,7 +9,7 @@
 
 This is an **unofficial community fork**. The amazing Logseq team builds this incredible open-source tool, and they deserve your support!
 
-**Important:** This fork disables [Logseq Sync](https://blog.logseq.com/logseq-sync-is-now-available-to-everyone/) - a paid feature that helps fund Logseq's continued development. If you find Logseq valuable, please consider supporting the official team:
+[Logseq Sync](https://blog.logseq.com/logseq-sync-is-now-available-to-everyone/) is a paid feature that helps fund Logseq's continued development. If you find Logseq valuable, please consider supporting the official team:
 
 **[Donate to Logseq on OpenCollective](https://opencollective.com/logseq)**
 
@@ -23,7 +23,7 @@ The official Logseq CI pipeline builds Windows ARM64 but the builds **crash on s
 Error: Cannot find module '@logseq/rsapi-win32-arm64-msvc'
 ```
 
-This fork removes the problematic dependencies and provides working ARM64 builds.
+This fork **compiles the missing native modules for ARM64** and provides fully functional ARM64 builds.
 
 ## What's Different
 
@@ -35,24 +35,28 @@ This fork removes the problematic dependencies and provides working ARM64 builds
 | Whiteboards | Yes | Yes |
 | Plugins | Yes | Yes |
 | Database graphs | Yes | Yes |
-| **Logseq Sync** | Yes | **Disabled** |
-| **Git integration** | Yes | **Disabled** |
+| **Logseq Sync** | Yes | **Yes** (rsapi compiled for ARM64) |
+| **Git integration** | Yes | **Yes** (dugite ARM64 binary) |
 | **Auto-updates** | Yes | **Manual** (notification + download) |
 
-### What You Lose
+### Full Functionality
 
-- **Logseq Sync**: Cloud synchronization between devices (requires `@logseq/rsapi` which has no ARM64 build)
-- **Git integration**: Auto-commit, version history (requires `dugite` which has no ARM64 Git binary)
-- **Auto-updates**: Automatic background updates via Squirrel/electron-updater (this fork shows a notification banner with a download link instead)
+This fork compiles the native modules that upstream doesn't provide for ARM64:
 
-### What You Keep
+- **Logseq Sync**: Works! We compile `@logseq/rsapi` for ARM64 using GitHub's native ARM64 runners
+- **Git integration**: Works! We use `dugite-native` ARM64 binaries (available since v2.47.3)
+- **Auto-updates**: Shows a notification banner when updates are available (click to download from GitHub releases)
 
-Everything else works natively on Windows ARM64:
+### Everything Works
+
+All Logseq features work natively on Windows ARM64:
 - Create and edit pages, blocks, and journals
 - Store notes locally as Markdown or Org files
 - Use whiteboards for visual note-taking
 - Install and use plugins
 - Database-backed graphs (SQLite)
+- **Logseq Sync** for cloud synchronization
+- **Git integration** for version control
 
 ## Download
 
@@ -157,10 +161,15 @@ The official CI pipeline (PR #12123) builds Windows ARM64 but:
 
 ### Our Fix
 
-We stub out the rsapi and dugite dependencies:
-- `src/electron/electron/file_sync_rsapi.cljs` - Returns "sync disabled" errors gracefully
-- `src/electron/electron/git.cljs` - Returns "git disabled" errors gracefully
-- `resources/package.json` - Removes problematic native dependencies
+We compile the missing native modules for ARM64 in our CI workflow:
+
+1. **rsapi**: Compiled from source using GitHub's native `windows-11-arm` runner
+   - Uses Rust nightly + Clang (required by the `ring` crate for ARM64)
+   - Binary is placed directly in `@logseq/rsapi` directory
+
+2. **dugite**: Uses pre-built ARM64 binary from [dugite-native](https://github.com/desktop/dugite-native/releases)
+   - ARM64 support added in v2.47.3
+   - Downloaded during CI via `npm_config_arch=arm64`
 
 ### Minor Hotfixes
 
