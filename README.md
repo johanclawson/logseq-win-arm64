@@ -177,7 +177,7 @@ This fork includes fixes for upstream Logseq bugs:
 
 | Fix | Upstream Issue | Description |
 |-----|----------------|-------------|
-| **Linked references sort order** | [#11201](https://github.com/logseq/logseq/issues/11201) | Fixed linked references (backlinks) showing oldest entries first instead of newest first |
+| **Linked references sort order** | [#11201](https://github.com/logseq/logseq/issues/11201) | Fixed linked references page groups showing oldest dates first instead of newest first |
 
 ### Startup Performance Optimizations
 

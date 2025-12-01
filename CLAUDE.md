@@ -279,4 +279,4 @@ Fixes for upstream bugs that affect this fork. These may create merge conflicts 
 
 | Fix | File | Issue | Description |
 |-----|------|-------|-------------|
-| Linked references sort order | `deps/db/src/logseq/db/common/view.cljs:96-102` | [#11201](https://github.com/logseq/logseq/issues/11201) | Fixed linked references showing oldest-first instead of newest-first. The `:avet` index returns ascending order; the fix reverses BEFORE deduplication so the newest entry is kept. |
+| Linked references sort order | `src/main/frontend/components/views.cljs:1848-1849` | [#11201](https://github.com/logseq/logseq/issues/11201) | Fixed linked references page groups showing oldest-first instead of newest-first. Added `:logseq.property.view/sort-groups-desc? true` when creating linked reference views. |

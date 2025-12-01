@@ -93,12 +93,12 @@
                                                      #{:block/updated-at :block/created-at :block/title}
                                                      (:db/ident property))))
                                (sort-ref-entities-by-single-property entities sorting get-value-fn)
-                               ;; Fix: reverse BEFORE deduplication so newest entries are kept
-                               ;; when sorting descending. The :avet index returns ascending order,
-                               ;; so we must reverse first, then dedupe (which keeps first occurrence).
-                               (let [datoms' (vec (d/datoms db :avet id))
-                                     datoms (->> (if (not asc?) (rseq datoms') datoms')
-                                                 (common-util/distinct-by :e))
+                               (let [datoms (cond->
+                                             (->> (d/datoms db :avet id)
+                                                  (common-util/distinct-by :e)
+                                                  vec)
+                                              (not asc?)
+                                              rseq)
                                      row-ids (set (map :db/id entities))
                                      id->row (zipmap (map :db/id entities) entities)]
                                  (keep

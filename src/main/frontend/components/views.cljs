@@ -1845,7 +1845,8 @@
                          :logseq.property.view/feature-type view-feature-type}
                          (contains? #{:linked-references :unlinked-references} view-feature-type)
                          (assoc :logseq.property.view/type (:db/id (db/entity :logseq.property.view/type.list))
-                                :logseq.property.view/group-by-property (:db/id (db/entity :block/page))))
+                                :logseq.property.view/group-by-property (:db/id (db/entity :block/page))
+                                :logseq.property.view/sort-groups-desc? true))
             view-exists? (seq (get-views view-parent view-feature-type))
             view-title (if view-exists?
                          ""
