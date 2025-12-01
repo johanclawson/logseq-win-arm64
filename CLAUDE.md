@@ -130,30 +130,27 @@ Or via winget + clj-msi installer from https://github.com/casselc/clj-msi/releas
 
 ### Why This Fork Exists
 
-The official Logseq CI builds ARM64 but crashes on startup:
-```
-Error: Cannot find module '@logseq/rsapi-win32-arm64-msvc'
-```
+The official Logseq CI builds ARM64 but the upstream doesn't publish `win32-arm64` binaries for native modules. This fork compiles `@logseq/rsapi` for ARM64 and downloads `dugite` ARM64 binaries to enable full functionality.
 
-The `@logseq/rsapi` package (Rust native module for sync/encryption) doesn't publish a `win32-arm64` binary. This fork stubs out rsapi and dugite to make the app work.
+### Full Functionality (feature-full-functionality branch)
 
-### Disabled Features
+| Feature | Status | How |
+|---------|--------|-----|
+| Logseq Sync | Enabled | rsapi compiled for ARM64 in CI workflow |
+| Git integration | Enabled | dugite-native provides ARM64 binaries |
 
-| Feature | Reason |
-|---------|--------|
-| Logseq Sync | Requires `@logseq/rsapi` (no ARM64 build) |
-| Git integration | Requires `dugite` (no ARM64 Git binary) |
+### Native Module Build Process
 
-### Stubbed Files (DO NOT REVERT)
+The CI workflow builds rsapi from source using GitHub's native Windows ARM64 runner:
 
-These files contain ARM64 compatibility stubs. When syncing with upstream, **preserve our modifications**:
+1. **rsapi**: Built using `windows-arm64` runner with Rust + Clang (required by `ring` crate)
+2. **dugite**: Uses pre-built ARM64 binary from dugite-native releases
 
-| File | What's Stubbed |
-|------|----------------|
-| `src/electron/electron/file_sync_rsapi.cljs` | All rsapi functions return rejected promises |
-| `src/electron/electron/git.cljs` | All git/dugite functions return rejected promises |
-| `src/electron/electron/utils.cljs` | Removed rsapi import, stubbed `set-rsapi-proxy` |
-| `resources/package.json` | Removed `@logseq/rsapi` and `dugite` dependencies |
+### Fork-Specific Files
+
+| File | Purpose |
+|------|---------|
+| `.github/workflows/build-rsapi-arm64.yml` | Standalone rsapi ARM64 build workflow |
 | `resources/electron-entry.js` | Entry point that enables Node.js 22 compile cache before main |
 | `src/electron/electron/updater.cljs` | ARM64 update checker (checks this fork's releases) |
 | `src/main/frontend/components/header.cljs` | ARM64 update notification banner |
@@ -188,7 +185,7 @@ These changes are safe because:
 - Splash screen is independent of main app (closes when main window ready)
 - Worker init and repo fetch are independent operations (no state conflicts)
 - Async file reads use proper error handling for missing files
-- Git config is already stubbed for ARM64 (returns rejected promise)
+- Git config runs normally (dugite enabled in feature-full-functionality branch)
 
 ### In-App Update Notifications
 
@@ -224,12 +221,14 @@ yarn electron:make-win-arm64
 | Workflow | File | Trigger | Purpose |
 |----------|------|---------|---------|
 | Build ARM64 | `.github/workflows/build-win-arm64.yml` | `version.cljs` changes or manual | Build & publish ARM64 releases |
+| Build rsapi ARM64 | `.github/workflows/build-rsapi-arm64.yml` | Manual or called by main build | Compile rsapi for ARM64 |
 | Sync Upstream | `.github/workflows/sync-upstream.yml` | Weekly (Mon 6:00 UTC) | Sync with upstream release tags |
 
 **Build workflow jobs:**
-1. `compile-cljs` (Ubuntu) - Builds ClojureScript with optimizations
-2. `build-windows-arm64` (Windows) - Builds Electron with `npm_config_arch=arm64`
-3. `release` (Ubuntu) - Publishes versioned (`0.11.0-arm64`) and rolling (`win-arm64-latest`) releases
+1. `build-rsapi-arm64` (Windows ARM64) - Compiles rsapi with Rust + Clang
+2. `compile-cljs` (Ubuntu) - Builds ClojureScript with optimizations
+3. `build-windows-arm64` (Windows) - Builds Electron with ARM64 native modules
+4. `release` (Ubuntu) - Publishes versioned (`0.11.0-arm64`) and rolling (`win-arm64-latest`) releases
 
 **Sync workflow behavior:**
 - Tracks **release tags** (not master) - only syncs when upstream publishes a new version
@@ -254,11 +253,11 @@ git push origin master
 
 ### Conflict Resolution
 
-When upstream modifies stubbed files:
-1. Keep our stub implementations (rejected promises)
-2. Add any NEW functions from upstream as additional stubs
+When upstream modifies native module files:
+1. Keep the upstream implementations (not stubs) for git.cljs, file_sync_rsapi.cljs, utils.cljs
+2. Ensure rsapi and dugite remain in package.json dependencies
 3. Test build locally before pushing
-4. Check that rsapi/dugite are NOT re-added to package.json
+4. Verify the rsapi ARM64 build workflow still works
 
 ### Release Process
 

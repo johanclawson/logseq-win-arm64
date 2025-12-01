@@ -1,0 +1,162 @@
+name: Build rsapi for Windows ARM64
+
+on:
+  workflow_dispatch:
+    inputs:
+      rsapi_version:
+        description: 'rsapi version tag (e.g., @logseq/rsapi@0.0.92)'
+        required: true
+        default: '@logseq/rsapi@0.0.92'
+  # Trigger when main build workflow needs rsapi
+  workflow_call:
+    inputs:
+      rsapi_version:
+        description: 'rsapi version tag'
+        type: string
+        required: true
+        default: '@logseq/rsapi@0.0.92'
+    outputs:
+      artifact_name:
+        description: 'Name of the uploaded artifact'
+        value: ${{ jobs.build-rsapi.outputs.artifact_name }}
+
+jobs:
+  build-rsapi:
+    name: Build rsapi ARM64
+    # Use native Windows ARM64 runner (public preview)
+    # Note: Only works for public repositories
+    runs-on: windows-arm64
+    outputs:
+      artifact_name: rsapi-win32-arm64-msvc
+
+    steps:
+      - name: Checkout rsapi repository
+        uses: actions/checkout@v4
+        with:
+          repository: logseq/rsapi
+          ref: ${{ inputs.rsapi_version || '@logseq/rsapi@0.0.92' }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-action@stable
+        with:
+          toolchain: nightly-2024-12-09
+          targets: aarch64-pc-windows-msvc
+
+      - name: Add Clang to PATH
+        shell: pwsh
+        run: |
+          # ring crate requires Clang for Windows ARM64 builds
+          # Find LLVM/Clang in Visual Studio installation
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          $clangPaths = @(
+            "$vsPath\VC\Tools\Llvm\ARM64\bin",
+            "$vsPath\VC\Tools\Llvm\x64\bin",
+            "C:\Program Files\LLVM\bin"
+          )
+
+          foreach ($path in $clangPaths) {
+            if (Test-Path $path) {
+              Write-Host "Found Clang at: $path"
+              echo "$path" >> $env:GITHUB_PATH
+              break
+            }
+          }
+
+          # Verify clang is available
+          clang --version
+
+      - name: Configure Cargo for ARM64
+        shell: pwsh
+        run: |
+          # Ensure we're targeting ARM64
+          rustup target add aarch64-pc-windows-msvc
+          rustup show
+
+      - name: Install dependencies
+        run: yarn install --immutable --mode=skip-build
+
+      - name: Build rsapi for ARM64
+        shell: pwsh
+        env:
+          CARGO_BUILD_TARGET: aarch64-pc-windows-msvc
+        run: |
+          # Build with explicit ARM64 target
+          yarn lerna exec "yarn build --target aarch64-pc-windows-msvc" --concurrency 1 --stream --no-prefix
+
+      - name: Prepare artifacts
+        shell: pwsh
+        run: |
+          # Find and copy the built .node file
+          $nodeFile = Get-ChildItem -Path packages/rsapi -Filter "*.node" -Recurse | Select-Object -First 1
+          if ($nodeFile) {
+            Write-Host "Found built file: $($nodeFile.FullName)"
+
+            # Create output directory
+            New-Item -ItemType Directory -Force -Path "output"
+
+            # Rename to standard format
+            Copy-Item $nodeFile.FullName -Destination "output/rsapi.win32-arm64-msvc.node"
+
+            # Create package.json for the npm package
+            @"
+{
+  "name": "@logseq/rsapi-win32-arm64-msvc",
+  "version": "0.0.92",
+  "os": ["win32"],
+  "cpu": ["arm64"],
+  "main": "rsapi.win32-arm64-msvc.node",
+  "files": ["rsapi.win32-arm64-msvc.node"],
+  "description": "Windows ARM64 native module for @logseq/rsapi"
+}
+"@ | Out-File -FilePath "output/package.json" -Encoding utf8
+
+            Get-ChildItem output/
+          } else {
+            Write-Error "No .node file found!"
+            exit 1
+          }
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rsapi-win32-arm64-msvc
+          path: output/
+          if-no-files-found: error
+          retention-days: 90
+
+  # Create a release with the built binary
+  release:
+    name: Create Release
+    needs: build-rsapi
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rsapi-win32-arm64-msvc
+          path: rsapi-arm64/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rsapi-arm64-${{ github.run_number }}
+          name: rsapi ARM64 Build ${{ github.run_number }}
+          body: |
+            Windows ARM64 build of @logseq/rsapi
+
+            Version: ${{ inputs.rsapi_version || '@logseq/rsapi@0.0.92' }}
+            Built on: ${{ github.event.repository.updated_at }}
+
+            This binary is built for use with the Windows ARM64 Logseq fork.
+          files: |
+            rsapi-arm64/rsapi.win32-arm64-msvc.node
+            rsapi-arm64/package.json
+          prerelease: true
