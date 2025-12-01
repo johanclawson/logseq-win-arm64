@@ -248,11 +248,11 @@ jobs:
             - **MSI installer**: `Logseq-win-arm64.msi`
             - **Portable ZIP**: `Logseq-win32-arm64-*.zip`
 
-  # Production release job - only runs on master branch pushes
+  # Production release job - runs on master branch pushes OR manual trigger without test_release
   release:
     needs: [compile-cljs, build-windows-arm64]
     runs-on: ubuntu-22.04
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.test_release != true))
     permissions:
       contents: write
     env:
