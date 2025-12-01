@@ -272,3 +272,11 @@ Releases are automatic on push to master:
 - **Upstream**: https://github.com/logseq/logseq
 - **CI Status**: https://github.com/johanclawson/logseq-win-arm64/actions
 - **Releases**: https://github.com/johanclawson/logseq-win-arm64/releases
+
+### Minor Hotfixes
+
+Fixes for upstream bugs that affect this fork. These may create merge conflicts when syncing with upstream.
+
+| Fix | File | Issue | Description |
+|-----|------|-------|-------------|
+| Linked references sort order | `deps/db/src/logseq/db/common/view.cljs:96-102` | [#11201](https://github.com/logseq/logseq/issues/11201) | Fixed linked references showing oldest-first instead of newest-first. The `:avet` index returns ascending order; the fix reverses BEFORE deduplication so the newest entry is kept. |

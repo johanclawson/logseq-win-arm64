@@ -162,6 +162,14 @@ We stub out the rsapi and dugite dependencies:
 - `src/electron/electron/git.cljs` - Returns "git disabled" errors gracefully
 - `resources/package.json` - Removes problematic native dependencies
 
+### Minor Hotfixes
+
+This fork includes fixes for upstream Logseq bugs:
+
+| Fix | Upstream Issue | Description |
+|-----|----------------|-------------|
+| **Linked references sort order** | [#11201](https://github.com/logseq/logseq/issues/11201) | Fixed linked references (backlinks) showing oldest entries first instead of newest first |
+
 ### Startup Performance Optimizations
 
 This fork includes several optimizations for faster startup (production builds only):
