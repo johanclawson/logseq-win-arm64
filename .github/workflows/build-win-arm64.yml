@@ -17,7 +17,7 @@ jobs:
   # First, build rsapi for ARM64 using native ARM64 runner
   build-rsapi-arm64:
     name: Build rsapi ARM64
-    runs-on: windows-arm64
+    runs-on: windows-11-arm
     steps:
       - name: Checkout rsapi repository
         uses: actions/checkout@v4

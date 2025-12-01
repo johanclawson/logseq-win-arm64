@@ -23,9 +23,9 @@ on:
 jobs:
   build-rsapi:
     name: Build rsapi ARM64
-    # Use native Windows ARM64 runner (public preview)
-    # Note: Only works for public repositories
-    runs-on: windows-arm64
+    # Use native Windows ARM64 runner (GA for public repos)
+    # Label: windows-11-arm (not windows-arm64!)
+    runs-on: windows-11-arm
     outputs:
       artifact_name: rsapi-win32-arm64-msvc
 
