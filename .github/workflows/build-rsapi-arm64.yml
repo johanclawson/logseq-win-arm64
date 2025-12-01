@@ -43,7 +43,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-action@stable
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2024-12-09
           targets: aarch64-pc-windows-msvc
